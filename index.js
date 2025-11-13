@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("Clean_db");
     const issusCollection = db.collection("issus");
@@ -77,7 +77,7 @@ async function run() {
       const result = await issusCollection
         .find({})
         .sort({
-          title: -1,
+          _id: -1,
         })
         .limit(6)
         .toArray();
@@ -128,7 +128,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
