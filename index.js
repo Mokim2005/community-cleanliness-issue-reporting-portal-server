@@ -11,8 +11,7 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri =
- `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASS}@cluster0.h2rvvtm.mongodb.net/?appName=Cluster0`
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASS}@cluster0.h2rvvtm.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -72,6 +71,15 @@ async function run() {
         success: true,
         result,
       });
+    });
+
+    app.get("/issues/latest", async (req, res) => {
+      const result = await issueCollection
+        .find() // সব data খুঁজবে
+        .sort({ _id: -1 }) // নতুন data আগে দেখাবে (descending order)
+        .limit(6) // শুধু শেষের 6টা নিবে
+        .toArray();
+      res.send(result);
     });
 
     app.post("/contributions", async (req, res) => {
