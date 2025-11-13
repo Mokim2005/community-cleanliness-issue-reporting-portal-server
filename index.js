@@ -76,11 +76,13 @@ async function run() {
     app.get("/issus-single/latest", async (req, res) => {
       const result = await issusCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({
+          title: -1,
+        })
         .limit(6)
         .toArray();
 
-      console.log("Latest issues:", result); 
+      console.log("Latest issues:", result);
       res.send(result);
     });
 
@@ -90,7 +92,6 @@ async function run() {
       const result = await contributionCollection.insertOne(data);
       res.send(result);
     });
-
 
     app.get("/contributions", async (req, res) => {
       const issueId = req.query.issueId;
