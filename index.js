@@ -73,12 +73,14 @@ async function run() {
       });
     });
 
-    app.get("/issues/latest", async (req, res) => {
-      const result = await issueCollection
-        .find() // সব data খুঁজবে
-        .sort({ _id: -1 }) // নতুন data আগে দেখাবে (descending order)
-        .limit(6) // শুধু শেষের 6টা নিবে
+    app.get("/issus-single/latest", async (req, res) => {
+      const result = await issusCollection
+        .find({})
+        .sort({ date: -1 })
+        .limit(6)
         .toArray();
+
+      console.log("Latest issues:", result); 
       res.send(result);
     });
 
@@ -89,12 +91,6 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/contribution", async (req, res) => {
-    //   const issueId = req.query.issueId;
-    //   const query = { issueId: new ObjectId(issueId) };
-    //   const result = await contributionCollection.find(query).toArray();
-    //   res.send(result);
-    // });
 
     app.get("/contributions", async (req, res) => {
       const issueId = req.query.issueId;
