@@ -1,13 +1,12 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
-const app = express();
 require("dotenv").config();
+
+const app = express();
 const port = process.env.PORT || 3000;
 
-//CMIv9ACvHmNRv9K5
-//clean.db
-
+// middleware
 app.use(
   cors({
     origin: ["https://clean-city-10.netlify.app", "http://localhost:5173"],
@@ -15,9 +14,12 @@ app.use(
 );
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASS}@cluster0.h2rvvtm.mongodb.net/?appName=Cluster0`;
+// MongoDB URI
+// const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASS}@cluster0.h2rvvtm.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASS}@cluster0.ekpzegp.mongodb.net/?appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+
+// Mongo Client
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -26,114 +28,170 @@ const client = new MongoClient(uri, {
   },
 });
 
-const db = client.db("Clean_db");
-const issusCollection = db.collection("issus");
-const contributionCollection = db.collection("contribution");
-const userCollection = db.collection("user");
+async function run() {
+  try {
+    // ✅ connect DB
+    await client.connect();
+    console.log("✅ MongoDB Connected Successfully");
 
-app.get("/user", async (req, res) => {
-  const result = await userCollection.find().toArray();
-  res.send(result);
-});
+    const db = client.db("Clean-city_db");
+    const issuesCollection = db.collection("issues");
+    const contributionCollection = db.collection("contribution");
+    const userCollection = db.collection("user");
 
-app.post("/user", async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  const result = await userCollection.insertOne(data);
-  res.send({
-    success: true,
-    result,
-  });
-});
+    // ================= USER =================
+    app.get("/user", async (req, res) => {
+      try {
+        const result = await userCollection.find().toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-app.get("/issus", async (req, res) => {
-  const result = await issusCollection.find().toArray();
-  console.log(result);
-  res.send(result);
-});
+    app.post("/user", async (req, res) => {
+      try {
+        const data = req.body;
+        const result = await userCollection.insertOne(data);
+        res.send({ success: true, result });
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-app.get("/issus/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(id);
-  const result = await issusCollection.findOne({ _id: new ObjectId(id) });
-  res.send({
-    success: true,
-    result,
-  });
-});
+    // ================= ISSUES =================
+    app.get("/issues", async (req, res) => {
+      try {
+        const result = await issuesCollection.find().toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-app.post("/issus", async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  const result = await issusCollection.insertOne(data);
-  res.send({
-    success: true,
-    result,
-  });
-});
+    app.get("/issues/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
 
-app.get("/issus-single/latest", async (req, res) => {
-  const result = await issusCollection
-    .find({})
-    .sort({
-      _id: -1,
-    })
-    .limit(6)
-    .toArray();
+        // invalid id handle
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send("Invalid ID");
+        }
 
-  console.log("Latest issues:", result);
-  res.send(result);
-});
+        const result = await issuesCollection.findOne({
+          _id: new ObjectId(id),
+        });
 
-app.post("/contributions", async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  const result = await contributionCollection.insertOne(data);
-  res.send(result);
-});
+        res.send({ success: true, result });
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-app.get("/contributions", async (req, res) => {
-  const issueId = req.query.issueId;
-  const query = {};
-  if (issueId) query.issueId = issueId;
+    app.post("/issues", async (req, res) => {
+      try {
+        const data = req.body;
+        const result = await issuesCollection.insertOne(data);
+        res.send({ success: true, result });
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-  const result = await contributionCollection.find(query).toArray();
-  console.log(result);
-  res.send(result);
-});
+    app.get("/issues-single/latest", async (req, res) => {
+      try {
+        const result = await issuesCollection
+          .find({})
+          .sort({ _id: -1 })
+          .limit(6)
+          .toArray();
 
-app.put("/issues/:id", async (req, res) => {
-  const { id } = req.params;
-  const updatedData = req.body;
-  const result = await issusCollection.updateOne(
-    { _id: new ObjectId(id) },
-    { $set: updatedData }
-  );
-  res.send(result);
-});
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
 
-app.delete("/issues/:id", async (req, res) => {
-  const id = req.params.id;
+    app.put("/issues/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
 
-  const result = await issusCollection.deleteOne({
-    _id: new ObjectId(id),
-  });
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send("Invalid ID");
+        }
 
-  if (result.deletedCount === 0) {
-    return res.status(404).json({ error: "Issue not found" });
+        const updatedData = req.body;
+
+        const result = await issuesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
+        );
+
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    app.delete("/issues/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send("Invalid ID");
+        }
+
+        const result = await issuesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({ error: "Issue not found" });
+        }
+
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    // ================= CONTRIBUTION =================
+    app.post("/contributions", async (req, res) => {
+      try {
+        const data = req.body;
+        const result = await contributionCollection.insertOne(data);
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    app.get("/contributions", async (req, res) => {
+      try {
+        const issueId = req.query.issueId;
+        const query = {};
+        if (issueId) query.issueId = issueId;
+
+        const result = await contributionCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send(err.message);
+      }
+    });
+
+    // ================= ROOT =================
+    app.get("/", (req, res) => {
+      res.send("✅ Server is running");
+    });
+
+  } catch (error) {
+    console.error("❌ MongoDB Connection Failed:", error);
   }
+}
 
-  res.send(result);
-});
+run();
 
-// Send a ping to confirm a successful connection
-// await client.db("admin").command({ ping: 1 });
-console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-app.get("/", (req, res) => {
-  res.send("server is running");
-});
-
+// server start
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 });
