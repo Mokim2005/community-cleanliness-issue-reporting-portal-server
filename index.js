@@ -9,7 +9,12 @@ const port = process.env.PORT || 3000;
 // middleware
 app.use(
   cors({
-    origin: ["https://clean-city-10.netlify.app", "http://localhost:5173"],
+    origin: [
+      "https://clean-city-10.netlify.app",
+      "http://localhost:5173", 
+      "https://clean-city-server-10-git-main-project-milestone-10.vercel.app",
+      "https://clean-city-10-server.vercel.app"
+    ].filter(Boolean),
   })
 );
 app.use(express.json());
@@ -191,7 +196,15 @@ async function run() {
 
 run();
 
-// server start
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-});
+// server start - only for local development, Vercel handles this
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`🚀 Server running on port ${port}`);
+  });
+}
+
+/**
+ * Vercel Serverless Function Handler
+ * Required for serverless deployment on Vercel
+ */
+module.exports = app;
