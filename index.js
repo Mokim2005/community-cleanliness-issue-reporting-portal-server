@@ -11,7 +11,8 @@ app.use(
   cors({
     origin: [
       "https://clean-city-10.netlify.app",
-      "http://localhost:5173", 
+      "http://localhost:5173",
+      "https://clean-city-10.vercel.app",
       "https://clean-city-server-10-git-main-project-milestone-10.vercel.app",
       "https://clean-city-10-server.vercel.app"
     ].filter(Boolean),
