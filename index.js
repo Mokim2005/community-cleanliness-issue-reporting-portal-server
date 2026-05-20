@@ -198,11 +198,9 @@ async function run() {
 run();
 
 // server start - only for local development, Vercel handles this
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
-  });
-}
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
+});
 
 /**
  * Vercel Serverless Function Handler
