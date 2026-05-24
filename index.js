@@ -66,14 +66,14 @@ async function run() {
     });
 
     // ================= ISSUES =================
-    app.get("/issues", async (req, res) => {
-      try {
-        const result = await issuesCollection.find().toArray();
-        res.send(result);
-      } catch (err) {
-        res.status(500).send(err.message);
-      }
-    });
+    // app.get("/issues", async (req, res) => {
+    //   try {
+    //     const result = await issuesCollection.find().toArray();
+    //     res.send(result);
+    //   } catch (err) {
+    //     res.status(500).send(err.message);
+    //   }
+    // });
 
     app.get("/issues/:id", async (req, res) => {
       try {
